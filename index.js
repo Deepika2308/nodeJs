@@ -1,6 +1,9 @@
 // const express = require("express"); //importing the erd party package - this comes from type:"commonjs"
 import express from "express";
-import { MongoClient } from "mongodb"
+import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
+
+dotenv.config();
 const app = express();
 const PORT = 4000;
 
@@ -75,11 +78,13 @@ let movies = [
   },
 ];
 
+
+
 //express.json is a middleware that converts the reuest data into json
 //app.use - it intercepts all the requests
 app.use(express.json());
 
-const MONGO_URL="mongodb://localhost";
+const MONGO_URL = process.env.MONGO_URL; //connecting to atlas-making it online
 async function createConnection(){
     const client = new MongoClient(MONGO_URL);
     await client.connect();
@@ -104,6 +109,22 @@ app.get("/movies/:id", async function (req, res) {
     let movie = await clientdb.db("b27we").collection("movies").findOne({id:id});
     // let movie = movies.find((mv) => mv.id === id);
  movie ? res.send(movie) : res.status(404).send({message:"No such movie found"});
+});
+
+app.delete("/movies/:id", async function (req, res) {
+  let {id} =req.params;
+  let result = await clientdb.db("b27we").collection("movies").deleteOne({id:id});
+  
+  res.send(result);
+});
+
+
+app.put("/movies/:id", async function (req, res) {
+  let {id} =req.params;
+  let updateData = req.body;
+  let result = await clientdb.db("b27we").collection("movies").updateOne({id:id},{$set:updateData});
+  
+  res.send(result);
 });
 
 app.post("/movies/create", async function (req, res) {
